@@ -1,0 +1,177 @@
+<!-- チャンネルの画面 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>LOGIN</title>
+        <link href="./style6.css" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+        <h1>Enjoy your V-tuber life!<h1>
+            <hr>
+            <input type="text" data-name="message" size="100"/>
+            
+            <div data-name="chat" id="test_input"  name="test_input" value=""></div>
+            <ul>投稿記録</ul>
+              <textarea class="log" cols="30" rows="30"  id="sampleInputedList" readonly></textarea></span>
+              <span><canvas id="mydisplay-container" class="display-container" width="500px" height="400px"></canvas></span>     	       
+              <span><canvas id="opdisplay-container" class="display-container" width="500px" height=400px"></canvas></span>    
+                     
+
+            <!-- scripts and styles -->
+            {% style "/assets/bootstrap/css/bootstrap.min.css" %}
+            {% style "/assets/font-awesome/web-fonts-with-css/css/fontawesome-all.min.css" %}
+            {% style "/css/screen.css" %}
+
+            {% script "/assets/jquery/jquery.min.js" %}
+            {% script "/assets/font-awesome/svg-with-js/js/fontawesome.min.js" %}
+            {% script "/assets/tether/dist/js/tether.min.js" %}
+            {% script "/assets/bootstrap/js/bootstrap.min.js" %}
+
+            <script type="text/javascript">
+             var csrfToken = "{{csrf-token}}";
+            </script>
+
+        <script type=“module” src=“/static/SpeakerTag.js”></script>
+        <script type="text/javascript"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+        <script src="facetrack/model_pca_20_svm.js"></script>
+        <script src="facetrack/clmtrackr.min.js"></script>
+        <script src="facetrack/pixi.min.js"></script>
+        <script type="module" src="./VTuberFrame.js"></script>
+         // note -----------------------------------
+         // - how to send face information
+         // webSocket.send(JSON.stringify({type : "face", name : "owner",
+         //                                params : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}));
+         // - how to send message
+         // webSocket.send(JSON.stringify({type : "message",
+         //                                name : "elect",
+         //                                params : message}));
+         //                  *  name : get from cookie
+         // - how to send greeting (inform them login into the channel)
+         // webSocket.send(JSON.stringify({type : "greeting",
+         //                                name : "elect",
+         //                                params : "hogehoge"}));
+         // ----------------------------------------
+
+         // test
+         // var uri = "ws://" + location.host + "/test/websocket/elect";
+         // webSocket = new WebSocket(uri);
+         // webSocket.send("Hello!");
+
+         var channel_name = (window.location.pathname).split("/")[2];
+         // 接続先URI
+         var uri = "ws://" + location.host + "/test/websocket/" + channel_name;
+         // var uri = "ws://" + location.host + "/test/websocket/{user-name}";
+         console.log(uri);
+         // WebSocketオブジェクト
+         var webSocket = null;
+
+         // 初期処理
+         function init() {
+             // ボタン押下イベント設定
+             $("[data-name='message']").keypress(press);
+             // 接続
+             open();
+         }
+
+         // 接続
+         function open() {
+             if (webSocket == null) {
+                 // WebSocket の初期化
+                 webSocket = new WebSocket(uri);
+                 // イベントハンドラの設定
+                 webSocket.onopen = onOpen;
+                 webSocket.onmessage = onMessage;
+                 webSocket.onclose = onClose;
+                 webSocket.onerror = onError;
+             }
+         }
+
+         // 接続イベント
+         function onOpen(event) {
+             chat("接続しました。");
+             webSocket.send(JSON.stringify({type : "greeting",
+                                            name : "elect",
+                                            params : "チャンネルは" + channel_name}));
+         }
+
+         // メッセージ受信イベント
+         function onMessage(event) {
+             if (event && event.data) {
+                 chat(event.data);
+             }
+         }
+
+         // エラーイベント
+         function onError(event) {
+             //chat("エラーが発生しました。");
+         }
+
+         // 切断イベント
+         function onClose(event) {
+             chat("切断しました。5秒間隔で再接続します。(" + event.code + ")");
+             webSocket = null;
+             setTimeout("open()", 5000);
+         }
+
+         // キー押下時
+         function press(event) {
+             // キーがEnterか判定
+             if (event && event.which == 13) {
+                 // メッセージ取得
+                 var message = $("[data-name='message']").val();
+                 // 存在チェック
+                 if (message && webSocket) {
+                     // メッセージ送信
+                     // webSocket.send("" + message);
+                    webSocket.send(JSON.stringify({type : "message",
+                                                    name : "elect",
+                                                    params : message})); // name : get from cookie
+                     // メッセージ初期化
+                     $("[data-name='message']").val("");
+                 }
+             }
+         }
+
+         // チャットに表示
+         function chat(message) {
+             // 100件まで残す
+             var chats = $("[data-name='chat']").find("div");
+             while (chats.length >= 100) {
+                 chats = chats.last().remove();
+             }
+             // メッセージ表示
+             //var msgtag = $("<div>").text(message);
+         }
+
+         // 初期処理登録
+         $(init);
+
+
+    var width = 300;
+    var height = 200;
+
+    // 郢ｧ・ｹ郢昴・繝ｻ郢ｧ・ｸ郢ｧ蜑・ｽｽ諛奇ｽ謀
+    var stage = new PIXI.Stage(0x000000);
+
+    // 郢晢ｽｬ郢晢ｽｳ郢敖郢晢ｽｩ郢晢ｽｼ郢ｧ蜑・ｽｽ諛奇ｽ謀
+    var renderer = PIXI.autoDetectRenderer(width, height);
+
+    // 郢晢ｽｬ郢晢ｽｳ郢敖郢晢ｽｩ郢晢ｽｼ邵ｺ・ｮview郢ｧ螂ｪOM邵ｺ・ｫ髴托ｽｽ陷賀邵ｺ蜷ｶ・謀
+    document.getElementById("mydisplay-container").appendChild(renderer.view);
+
+    // 騾包ｽｻ陷剃ｸ環ｰ郢ｧ蟲ｨ縺帷ｹ晏干ﾎ帷ｹｧ・､郢晏現縺檎ｹ晄じ縺夂ｹｧ・ｧ郢ｧ・ｯ郢晏現・定抄諛奇ｽ謀
+   
+
+    function animate(){
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+        </script>
+        <hr>
+        <p><input class="btn" type="button" value="ライブを終了"></p>
+</html>

@@ -1,0 +1,83 @@
+<html lang="ja"><head>
+    <meta charset="UTF-8">
+    <title>v-tuber-8</title>
+      <link href="./style6.css" rel="stylesheet" type="text/css">
+    </head>
+<body>
+  <h1>Enjoy your V-tuber life!</h1><hr>
+  <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8=" crossorigin="anonymous"></script>
+  <script src="facetrack/model_pca_20_svm.js"></script>
+  <script src="facetrack/clmtrackr.min.js"></script>
+  <script src="facetrack/pixi.min.js"></script>
+  <script type="module" src="./VTuberFrame.js"></script>
+
+  <div id="main-container" class="area1">
+      <span class="nav"> 
+        <div><input type="text" id="test_input" name="test_input" value=""></div>
+        <div><input class="btn" type="button" onclick="consoleOutput();AddStringToTextarea();" style="width: 200px;" value="投稿"></div>
+        <ul>投稿記録</ul>
+        <textarea class="log" cols="30" rows="18" id="sampleInputedList" readonly=""></textarea></span>
+	      <span><canvas id="mydisplay-container" class="display-container" width="500px" height="400px"></canvas></span>     	       
+        <span><canvas id="opdisplay-container" class="display-container" width="500px" height="400px&quot;"></canvas></span>    
+        
+  </div>
+  <br><br><br><hr>
+  <p><input class="btn" type="button" value="ライブを終了"></p>
+
+  <script>     
+  function consoleOutput(){
+				let testInput = document.getElementById('test_input');
+				//console.log('testInput郢晢ｽｻ鬯ｯ・ｨ・つ' + testInput);
+				console.log(testInput.value);
+			}
+			
+		//window.onload = function(){
+		//		console.log('');
+		//};
+		
+		function AddStringToTextarea() {
+		   let UserString = document.getElementById('test_input').value;
+   		     document.getElementById('sampleInputedList').value += UserString + "\n";
+		}
+		
+		const request = new XMLHttpRequest();
+		request.open("GET", `http://elect-remote.softether.net:3000/channel/111111`);
+		request.addEventListener("load", (event) => {
+		    console.log(event.target.status); // => 200
+    		console.log(event.target.responseText); // => "{...}"
+		});
+        request.send();
+        
+        request.open("GET", `http://elect-remote.softether.net:3000/channel/111111`);
+		request.addEventListener("load", (event) => {
+		    console.log(event.target.status); // => 200
+    		console.log(event.target.responseText); // => "{...}"
+		});
+		request.send();
+		
+  
+  
+    var width = 300;
+    var height = 200;
+
+    // 郢ｧ・ｹ郢昴・繝ｻ郢ｧ・ｸ郢ｧ蜑・ｽｽ諛奇ｽ謀
+    var stage = new PIXI.Stage(0x000000);
+
+    // 郢晢ｽｬ郢晢ｽｳ郢敖郢晢ｽｩ郢晢ｽｼ郢ｧ蜑・ｽｽ諛奇ｽ謀
+    var renderer = PIXI.autoDetectRenderer(width, height);
+
+    // 郢晢ｽｬ郢晢ｽｳ郢敖郢晢ｽｩ郢晢ｽｼ邵ｺ・ｮview郢ｧ螂ｪOM邵ｺ・ｫ髴托ｽｽ陷賀邵ｺ蜷ｶ・謀
+    document.getElementById("mydisplay-container").appendChild(renderer.view);
+
+    // 騾包ｽｻ陷剃ｸ環ｰ郢ｧ蟲ｨ縺帷ｹ晏干ﾎ帷ｹｧ・､郢晏現縺檎ｹ晄じ縺夂ｹｧ・ｧ郢ｧ・ｯ郢晏現・定抄諛奇ｽ謀
+   
+
+    function animate(){
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+  </script>
+
+
+</body></html>
