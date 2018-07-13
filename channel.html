@@ -58,7 +58,7 @@
          function onOpen(event) {
              chat("接続しました。");
              if (Cookies.get('identity')) {
-                 webSocket.send(JSON.stringify({"チャンネルは" + channel_name}));
+                 webSocket.send(JSON.stringify({"新規接続しました。チャンネルは" + channel_name+"です。"}));
              }
          }
 
