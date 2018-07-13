@@ -1,0 +1,195 @@
+
+<!-- チャンネルの画面 -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>3-v-tuber</title>
+        <script type="text/javascript" src="/js/jquery-3.3.1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/4.7.1/pixi.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
+        <script type="text/javascript">
+         // note -----------------------------------
+         // - how to send face information
+         // webSocket.send(JSON.stringify({type : "face", name : "owner",
+         //                                params : [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}));
+         // - how to send message
+         // webSocket.send(JSON.stringify({type : "message",
+         //                                name : "elect",
+         //                                params : message}));
+         //                  *  name : get from cookie
+         // - how to send greeting (inform them login into the channel)
+         // webSocket.send(JSON.stringify({type : "greeting",
+         //                                name : "elect",
+         //                                params : "hogehoge"}));
+         // ----------------------------------------
+
+         // test
+         var channel_name = (window.location.pathname).split("/")[2];
+         // 接続先URI
+         var uri = "ws://" + location.host + "/test/websocket/" + channel_name;
+         console.log(uri);
+         // WebSocketオブジェクト
+         var webSocket = null;
+
+         // 初期処理
+         function init() {
+             // ボタン押下イベント設定
+             $("[data-name='message']").keypress(press);
+             // 接続
+             open();
+         }
+
+         // 接続
+         function open() {
+             if (webSocket == null) {
+                 // WebSocket の初期化
+                 webSocket = new WebSocket(uri);
+                 // イベントハンドラの設定
+                 webSocket.onopen = onOpen;
+                 webSocket.onmessage = onMessage;
+                 webSocket.onclose = onClose;
+                 webSocket.onerror = onError;
+             }
+         }
+
+         // 接続イベント
+         function onOpen(event) {
+             chat("接続しました。");
+             if (Cookies.get('identity')) {
+                 webSocket.send(JSON.stringify({"チャンネルは" + channel_name}));
+             }
+         }
+
+         // メッセージ受信イベント
+         function onMessage(event) {
+             if (event && event.data) {
+//------------------------------------------------------------
+                 var obj = JSON.parse(event.data);
+                 console.log(obj.type);
+                 if (obj.type == "voice-data") {
+                     var voice = obj.params;
+                     var audio = new Audio("data:audio/wav;base64," + voice);
+                     audio.play();
+                 }
+//-------------------------------------------------------------
+                 chat(event.data);
+             }
+         }
+
+         // エラーイベント
+         function onError(event) {
+             //chat("エラーが発生しました。");
+         }
+
+         // 切断イベント
+         function onClose(event) {
+             chat("切断しました。3秒後に再接続します。(" + event.code + ")");
+             webSocket = null;
+             setTimeout("open()", 3000);
+         }
+
+         // キー押下時
+         function press(event) {
+             // キーがEnterか判定
+             if (event && event.which == 13) {
+                 // メッセージ取得
+                 var message = $("[data-name='message']").val();
+                 // 存在チェック
+                 if (message && webSocket) {
+                     // メッセージ送信
+                     webSocket.send(JSON.stringify({type : "message",
+                                                    name : Cookies.get('identity'),
+                                                    params : message}));
+                     webSocket.send(JSON.stringify({type : "talk",
+                                                    name : Cookies.get('identity'),
+                                                    params :{text : message}}));
+                     
+                         
+                         // メッセージ初期化
+                         $("[data-name='message']").val("");
+                 }
+             }
+         }
+
+                         // チャットに表示
+                         function chat(message) {
+                             // 100件まで残す
+                             var chats = $("[data-name='chat']").find("div");
+                             while (chats.length >= 100) {
+                                 chats = chats.last().remove();
+                             }
+                             // メッセージ表示
+                             var msgtag = $("<div>").text(message[5]);
+                             $("[data-name='chat']").prepend(msgtag);
+                         }
+
+                         // 初期処理登録
+                         $(init);
+
+                         
+        </script>
+    </head>
+    <body>
+        <p>Here is the channel page<p>
+            <input type="text" data-name="message" size="100" />
+            <hr />
+            <div data-name="chat"></div>
+
+            <!-- canvas-list -->
+            <div class="canvases">
+                <span><canvas id="mydisplay-container" class="display-container"
+                              width="640px" height="480px"
+                              style="background-color:black;"></canvas></span>
+                <span><canvas id="opdisplay-container" class="display-container"
+                              width="640px" height=480px"
+                              style="background-color:black;"></canvas></span>
+                <div>
+                    <!-- canvas-list -->
+
+                    <!-- scripts and styles -->
+                    <link href="/assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+                    <link href="/assets/font-awesome/web-fonts-with-css/css/fontawesome-all.min.css" rel="stylesheet" type="text/css" />
+                    <link href="/css/screen.css" rel="stylesheet" type="text/css" />
+
+                    <script src="/assets/jquery/jquery.min.js" type="text/javascript"></script>
+                    <script src="/assets/font-awesome/svg-with-js/js/fontawesome.min.js" type="text/javascript"></script>
+                    <script src="/assets/tether/dist/js/tether.min.js" type="text/javascript"></script>
+                    <script src="/assets/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+                    <script type="text/javascript">
+                     // ---------------------------------------------------
+                     // get-messages
+                     const request = new XMLHttpRequest();
+                     
+                     request.open("GET", "/vchats-api/"+ (window.location.pathname).split("/")[2] +"/get-messages");
+                     request.addEventListener("load", (event) => {
+                         console.log(event.target.status); // => 200
+                         console.log(event.target.responseText); // => "{...}"
+                     });
+                     request.send();
+                     // ---------------------------------------------------
+
+                     // set canvas ----------------------------------------
+                     var width = 300;
+                     var height = 200;
+
+                     var stage = new PIXI.Stage(0x000000);
+
+                     var renderer = PIXI.autoDetectRenderer(width, height);
+
+                     document.getElementById("mydisplay-container").appendChild(renderer.view);
+
+                     function animate(){
+                         requestAnimationFrame(animate);
+                     }
+
+                     animate();
+                     // --------------------------------------------------------------
+                    </script>
+            <script type="text/javascript">
+             var csrfToken = "TEQBBsOS9TmnzITlirSHu5vRv91xBOWWHnGQECzAnu9YPKf0vNC0lpMrN618wWQCC+eT2KeQFpHEiXZf";
+            </script>
+            
+    </body>
+</html>
